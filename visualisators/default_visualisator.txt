@@ -1,0 +1,17 @@
+projection_type:
+orthographic
+
+offsets:
+1
+1 2 0.5
+
+rotations:
+2
+0 2 0.025
+0 1 0.005
+
+
+colors:
+20 20 20
+255 255 255
+255 0 0

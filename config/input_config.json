@@ -1,0 +1,86 @@
+{
+    "left_press": {
+        "device": "mouse",
+        "button": 1,
+        "trigger": "press",
+        "implement": ["main_screen"]
+    },
+    "exit": {
+        "device": "keyboard",
+        "binding": 27,
+        "trigger": "press",
+        "implement": ["main_screen"]
+    },
+    "increment_subobject": {
+        "device": "keyboard",
+        "binding": 119,
+        "trigger": "press",
+        "implement": ["main_screen"]
+    },
+    "decrement_subobject": {
+        "device": "keyboard",
+        "binding": 115,
+        "trigger": "press",
+        "implement": ["main_screen"]
+    },
+    "increment_subobject_index": {
+        "device": "keyboard",
+        "binding": 100,
+        "trigger": "press",
+        "implement": ["main_screen"]
+    },
+    "decrement_subobject_index": {
+        "device": "keyboard",
+        "binding": 97,
+        "trigger": "press",
+        "implement": ["main_screen"]
+    },
+    "scroll_up": {
+        "device": "mouse",
+        "button": 4,
+        "trigger": "scroll",
+        "implement": ["main_screen"]
+    },
+    "scroll_down": {
+        "device": "mouse",
+        "button": 5,
+        "trigger": "scroll",
+        "implement": ["main_screen"]
+    },
+    "import_object": {
+        "device": "keyboard",
+        "trigger": "press",
+        "binding": 105,
+        "implement": ["main_screen"]
+    },
+    "pause": {
+        "device": "keyboard",
+        "trigger": "toggle",
+        "binding": 32,
+        "implement": ["main_screen"]
+    },
+    "write_blank_preset": {
+        "device": "keyboard",
+        "trigger": "press",
+        "binding": 110,
+        "implement": ["main_screen"]
+    },
+    "write_blank_visualiser": {
+        "device": "keyboard",
+        "trigger": "press",
+        "binding": 109,
+        "implement": ["main_screen"]
+    },
+    "rotate_positive": {
+        "device": "keyboard",
+        "trigger": "hold",
+        "binding": 101,
+        "implement": ["main_screen"]
+    },
+    "rotate_negative": {
+        "device": "keyboard",
+        "trigger": "hold",
+        "binding": 113,
+        "implement": ["main_screen"]
+    }
+}
