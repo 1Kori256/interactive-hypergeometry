@@ -8,12 +8,12 @@ from scripts.virtual_space import VrtSpace
 
 
 class App:
-    def __init__(self) -> None:
+    def __init__(self, parameters=None) -> None:
         self.path = os.path.dirname(os.path.abspath(__file__))
         self.config = utilities.load_config(f"{self.path}/config")
             
         self.window = Window(self)
-        self.input = Input(self, sys.argv)
+        self.input = Input(self, sys.argv if parameters is None else parameters)
         self.renderer = Renderer(self)
         self.vrt_space = VrtSpace(self)
 

@@ -38,6 +38,7 @@ class VrtSpace:
         start_points_index = -1 
 
         self.number_of_edges = 0
+        self.edges = []
         start_edges_index = -1
 
         self.subobject_manager = {}
@@ -84,6 +85,8 @@ class VrtSpace:
             self.subobjects = self.subobject_manager[self.subobject_list[self.subobject_index]]
         except IndexError:  # Handle objects without subobject_manager
             self.subobjects = []
+
+        self.edges = np.asarray(self.edges, dtype=np.intp).reshape(-1, 2)
 
         self.presets.dimensions = self.dimensions
         self.matrix_utils.dimensions = self.dimensions
@@ -140,15 +143,13 @@ class VrtSpace:
 
                 self.app.renderer.colors = self.colors
 
-        self.rotated_points = np.empty([len(self.points), self.dimensions])
-        for i in range(len(self.points)):
-            self.rotated_points[i] = self.points[i]
+        transform = np.identity(self.dimensions)
         for offset in self.offsets:
-            rotation_matrix = self.matrix_utils.rotation(offset[2], offset[0], offset[1])
-            for i in range(len(self.points)):
-                self.rotated_points[i] = rotation_matrix.dot(self.rotated_points[i])
-        for i in range(len(self.points)):
-            self.points[i] = self.rotated_points[i]
+            rotation = self.matrix_utils.rotation(offset[2], offset[0], offset[1])
+            transform = rotation @ transform
+        np.copyto(self.points, self.points @ transform.T)
+        self.rotated_points = np.empty_like(self.points)
+        self.updated_points = np.empty((len(self.points), 2))
 
         self.app.input.keyboard_variables["pause"] = True
         self.app.input.loadup = 1
@@ -176,23 +177,18 @@ class VrtSpace:
                 self.current_subobject = 0
 
 
-        self.rotated_points = np.empty([len(self.points), self.dimensions])
-        for i in range(len(self.points)):
-            self.rotated_points[i] = self.points[i]
+        # Compose the rotations once, then transform every point in one operation.
+        transform = np.identity(self.dimensions)
+        for angle, rotation in zip(self.angles, self.rotations):
+            transform = self.matrix_utils.rotation(angle, rotation[0], rotation[1]) @ transform
+        np.matmul(self.points, transform.T, out=self.rotated_points)
 
-        for i, rotation in enumerate(self.rotations):
-            rotation_matrix = self.matrix_utils.rotation(self.angles[i], rotation[0], rotation[1])
-            for point_index in range(len(self.points)):
-                self.rotated_points[point_index] = rotation_matrix.dot(self.rotated_points[point_index])
-                
-
-        self.updated_points = np.empty([len(self.points), 2])
         if self.projection_type == "orthographic":
-            for i in range(len(self.points)):
-                self.updated_points[i] = self.matrix_utils.orthographic_projection(self.rotated_points[i])
+            np.copyto(self.updated_points,
+                      self.matrix_utils.orthographic_projection(self.rotated_points))
         elif self.projection_type == "perspective":
-            for i in range(len(self.points)):
-                self.updated_points[i] = self.matrix_utils.perspective_projection(self.rotated_points[i])
+            np.copyto(self.updated_points,
+                      self.matrix_utils.perspective_projection(self.rotated_points))
 
         if not self.app.input.keyboard_variables["pause"]:
             for i, angle in enumerate(self.angles):
