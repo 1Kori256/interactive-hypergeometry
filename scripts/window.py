@@ -3,6 +3,7 @@ Window object
 """
 
 import time
+from collections import deque
 import pygame
 from pygame.locals import *
 
@@ -33,7 +34,7 @@ class Window:
         self.dt = 0.001
         self.frame_start = time.perf_counter()
         self.fps = 0
-        self.frame_history = [self.dt]
+        self.frame_history = deque([self.dt], maxlen=100)
         
         pygame.font.init()
         self.font = pygame.font.Font(f"{self.app.path}/data/font/game_font.ttf", 8)
@@ -49,14 +50,15 @@ class Window:
         
         """Redner screen"""
         
-        self.window.blit(pygame.transform.scale(self.app_window, self.scaled_resolution), (0, 0))
+        if self.base_resolution == self.scaled_resolution:
+            self.window.blit(self.app_window, (0, 0))
+        else:
+            pygame.transform.scale(self.app_window, self.scaled_resolution, self.window)
         pygame.display.update()
-        self.app_window.fill(self.config["window"]["background_color"])
         
         # Get delta time
         self.dt = time.perf_counter() - self.frame_start
         self.frame_start = time.perf_counter()
         self.frame_history.append(self.dt)
-        self.frame_history = self.frame_history[-100:]
         self.fps = round(self.calculate_fps())
         self.clock.tick(60)

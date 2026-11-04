@@ -4,6 +4,7 @@ Useful function for the app
 
 
 import json
+from functools import lru_cache
 import os
 import pygame
 
@@ -41,9 +42,14 @@ def debug(surface, font, pos, color, *args) -> None:
     *args - values to show in debugging menu
     """
     
-    debug_surface = pygame.Surface((800, 8 + 16 * (len(args) - 1)))
+    surface.blit(_debug_surface(font, tuple(str(arg) for arg in args)), pos)
+
+
+@lru_cache(maxsize=128)
+def _debug_surface(font, lines):
+    """Reuse the static help text and repeated FPS/subobject labels."""
+    debug_surface = pygame.Surface((800, 8 + 16 * max(0, len(lines) - 1)))
     debug_surface.set_colorkey((0, 0, 0))
-    for i, arg in enumerate(args):
-        text_object = font.render(f"{arg}", True, (240,240,240))
-        debug_surface.blit(text_object, (0, i * 16))
-    surface.blit(debug_surface, pos)
+    for index, line in enumerate(lines):
+        debug_surface.blit(font.render(line, True, (240, 240, 240)), (0, index * 16))
+    return debug_surface

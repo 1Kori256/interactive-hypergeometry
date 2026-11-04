@@ -26,6 +26,7 @@ class Renderer:
             [255, 0, 0]]
 
         self.colors = self.default_colors
+        self.controls_label = self.app.window.mid_font.render("Controls", True, (240, 240, 240))
         
     def render(self) -> None:
         
@@ -34,32 +35,29 @@ class Renderer:
         self.app.window.app_window.fill(self.colors[0])
         self.surface = self.app.window.app_window
         
-        try:
-            for edge in self.app.vrt_space.edges:
-                if (edge[0] not in self.app.vrt_space.subobjects[self.app.vrt_space.current_subobject]) or (edge[1] not in self.app.vrt_space.subobjects[self.app.vrt_space.current_subobject]):
-                    pygame.draw.line(self.app.window.app_window, self.colors[1], -self.scale * np.array(self.app.vrt_space.updated_points[edge[0]]) + [400, 300],
-                                                                                  -self.scale * np.array(self.app.vrt_space.updated_points[edge[1]]) + [400, 300])
-                else:
-                    pygame.draw.line(self.app.window.app_window, self.colors[2], -self.scale * np.array(self.app.vrt_space.updated_points[edge[0]]) + [400, 300],
-                                                                              -self.scale * np.array(self.app.vrt_space.updated_points[edge[1]]) + [400, 300])
-        except IndexError:
-            try:
-                for edge in self.app.vrt_space.edges:
-                    pygame.draw.line(self.app.window.app_window, self.colors[1], -self.scale * np.array(self.app.vrt_space.updated_points[edge[0]]) + [400, 300],
-                                                                                  -self.scale * np.array(self.app.vrt_space.updated_points[edge[1]]) + [400, 300])
-            except: # Edges are optional
-                pass
+        space = self.app.vrt_space
+        selected = np.zeros(len(space.updated_points), dtype=bool)
+        if space.subobjects:
+            selected[space.subobjects[space.current_subobject]] = True
 
+        # Screen coordinates and subobject membership are shared by points and edges.
+        center = np.asarray(self.app.window.base_resolution, dtype=float) / 2
+        screen_points = -self.scale * space.updated_points + center
+        visible = np.isfinite(screen_points).all(axis=1)
+        edges = space.edges
+        if len(edges):
+            edge_points = screen_points[edges]
+            edge_selected = selected[edges].all(axis=1)
+            edge_visible = visible[edges].all(axis=1)
+            for points, highlighted, valid in zip(edge_points, edge_selected, edge_visible):
+                if valid:
+                    color = self.colors[2 if highlighted else 1]
+                    pygame.draw.aaline(self.surface, color, points[0], points[1])
 
-        for index, point in enumerate(self.app.vrt_space.updated_points):
-            try:
-                if index not in self.app.vrt_space.subobjects[self.app.vrt_space.current_subobject]:
-                    pygame.draw.circle(self.app.window.app_window, self.colors[1], -self.scale * point + [400, 300], 2)
-                else:
-                    pygame.draw.circle(self.app.window.app_window, self.colors[2], -self.scale * point + [400, 300], 2) 
-            except IndexError: # Subobjects are optional
-                pygame.draw.circle(self.app.window.app_window, self.colors[1], -self.scale * point + [400, 300], 2)
-                
+        for point, highlighted, valid in zip(screen_points, selected, visible):
+            if valid:
+                pygame.draw.circle(self.surface, self.colors[2 if highlighted else 1], point, 2)
+
         # Show debug values
         try:
             utilities.debug(self.surface, self.app.window.font, (750, 10), self.colors[1], 
@@ -69,8 +67,8 @@ class Renderer:
             utilities.debug(self.surface, self.app.window.font, (750, 10), self.colors[1],
                             self.app.window.fps)
 
-        text_object = self.app.window.mid_font.render("Controls", True, (240,240,240))
-        self.app.window.app_window.blit(text_object, (720 - text_object.get_width() // 2, 575 - text_object.get_height() // 2))
+        self.app.window.app_window.blit(self.controls_label,
+            (720 - self.controls_label.get_width() // 2, 575 - self.controls_label.get_height() // 2))
 
         if self.app.input.show_controls:
             self.app.window.app_window.fill(self.colors[0])
